@@ -1,4 +1,4 @@
-﻿<html lang="en"><script type="text/javascript" class="__REQUESTLY__SCRIPT">(function(namespace) {
+<html lang="en"><script type="text/javascript" class="__REQUESTLY__SCRIPT">(function(namespace) {
   window[namespace] = window[namespace] || {};
   window[namespace].responseRules = {};
 
@@ -60,6 +60,67 @@
     setRequestHeader.apply(this, arguments);
   }
 })('__REQUESTLY__')</script><head><script type="text/javascript" class="__REQUESTLY__SCRIPT">(function(namespace) {
+  window[namespace] = window[namespace] || {};
+  window[namespace].responseRules = {};
+
+  let open = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function(method) {
+    this.addEventListener('readystatechange', function() {
+      if (this.readyState === 4 && window[namespace].responseRules.hasOwnProperty(this.responseURL)) {
+        const responseRule = window[namespace].responseRules[this.responseURL];
+        const {response, id} = responseRule;
+        const responseType = this.responseType;
+        let customResponse;
+
+        customResponse = response.type === 'code' ? responseRule.evaluator({
+            method,
+            url: this.responseURL,
+            requestHeaders: this.requestHeaders,
+            requestData: this.requestData,
+            responseType: this.responseType,
+            response: this.response
+          }) : response.value;
+
+        Object.defineProperty(this, 'response', {
+          get: function () {
+            if (response.type === 'static' && responseType === 'json') {
+              return JSON.parse(customResponse);
+            }
+            return customResponse;
+          }
+        });
+
+        if (responseType === '' || responseType === 'text') {
+          Object.defineProperty(this, 'responseText', {
+            get: function () {
+              return customResponse;
+            }
+          });
+        }
+
+        window.postMessage({
+          from: 'requestly',
+          type: 'response_rule_applied',
+          id
+        }, window.location.href);
+      }
+    }, false);
+    open.apply(this, arguments);
+  };
+
+  let send = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.send = function(data) {
+    this.requestData = data;
+    send.apply(this, arguments);
+  };
+
+  let setRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
+  XMLHttpRequest.prototype.setRequestHeader = function(header, value) {
+    this.requestHeaders = this.requestHeaders || {};
+    this.requestHeaders[header] = value;
+    setRequestHeader.apply(this, arguments);
+  }
+})('__REQUESTLY__')</script><script type="text/javascript" class="__REQUESTLY__SCRIPT">(function(namespace) {
   window[namespace] = window[namespace] || {};
   window[namespace].responseRules = {};
 
@@ -530,7 +591,6 @@ if (self !== top) {
                 <li>
                     <a class="hidden-sm hidden-md hidden-lg" href="https://web.archive.org/web/20181004174617/http://vyondhoster.000webhostapp.com/create">Make a Video</a>
                     <span class="site-nav-btn hidden-xs"><a class="btn btn-green" href="/html/themelist/themelist.html">Make a Video</a>
-<a class="btn btn-green" href="https://discord.gg/FjMMyXn">Discord</a></span>
                 </li>
             </ul>
         </div>
