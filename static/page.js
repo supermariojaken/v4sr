@@ -64,7 +64,7 @@ module.exports = function (req, res, url) {
 		}
 
 		case '/player': {
-			title = 'Video Player - GoAnimateFor Schools Remastered';
+			title = 'Video Player - GoAnimate For Schools Remastered';
 			attrs = {
 				data: process.env.SWF_URL + '/player.swf',
 				type: 'application/x-shockwave-flash', width: '100%', height: '100%',
